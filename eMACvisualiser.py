@@ -76,7 +76,7 @@ def calculate_and_show():
         z=[ce_remi],
         mode='markers+text',
         marker=dict(size=6, color=color),
-        text=[f"P={P:.2f}<br>eMAC={eMAC:.2f}"],
+        text=[f"<b>P={P:.2f}<br>eMAC={eMAC:.2f}</b>"],
         textposition='top center',
         name='User Input Point'
     ))
@@ -105,9 +105,9 @@ def calculate_and_show():
             'xanchor': 'center'
         },
         scene=dict(
-            xaxis_title='CeProp (µg/mL)',
-            yaxis_title='EtSevo (%)',
-            zaxis_title='CeRemi (ng/mL)'
+            xaxis_title=dict(text='CeProp (\u00b5g/mL)', font=dict(size=18, family='Arial', color='black', weight='bold')),
+            yaxis_title=dict(text='EtSevo (%)', font=dict(size=18, family='Arial', color='black', weight='bold')),
+            zaxis_title=dict(text='CeRemi (ng/mL)', font=dict(size=18, family='Arial', color='black', weight='bold'))
         ),
         margin=dict(l=0, r=0, t=40, b=0),
         legend=dict(x=0, y=1),
@@ -115,16 +115,16 @@ def calculate_and_show():
             dict(
                 showarrow=False,
                 text=(
-                    f"User-defined values:<br>"
-                    f"P = {P:.3f}<br>"
-                    f"eMAC = {eMAC:.3f}"
+                    f"<b>User-defined values:</b><br>"
+                    f"<b>P = {P:.3f}</b><br>"
+                    f"<b>eMAC = {eMAC:.3f}</b>"
                 ),
                 x=0.98,
                 y=0.75,
                 xanchor='right',
                 yanchor='middle',
                 align='right',
-                font=dict(size=12, color='black'),
+                font=dict(size=14, color='black', family='Arial', weight='bold'),
                 bgcolor='rgba(255,255,255,0.8)',
                 bordercolor='black',
                 borderwidth=1,
@@ -137,7 +137,7 @@ def calculate_and_show():
                     "Ce50 values and interaction parameters were derived from:<br>"
                     "Heyse (2012), Hannivoort (2016), Short (2002), Bouillon (2004).<br><br>"
                     "<b>Ce50 values used:</b><br>"
-                    "- Propofol: 3.4 µg/mL<br>"
+                    "- Propofol: 3.4 \u00b5g/mL<br>"
                     "- Sevoflurane ET: 2.6 %<br>"
                     "- Remifentanil: 1.7 ng/mL<br><br>"
                     "Model outputs include probability of no response (P)<br>"
@@ -169,7 +169,7 @@ window.geometry("400x250")
 frame = Frame(window)
 frame.pack(pady=20, expand=True, fill='both')
 
-Label(frame, text="CeProp (µg/mL):").grid(row=0, column=0, sticky='e', padx=10, pady=5)
+Label(frame, text="CeProp (\u00b5g/mL):").grid(row=0, column=0, sticky='e', padx=10, pady=5)
 entry_prop = Entry(frame, width=15)
 entry_prop.grid(row=0, column=1, padx=10, pady=5)
 
