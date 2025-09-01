@@ -1,186 +1,152 @@
+import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
-from tkinter import Tk, Label, Entry, Button, Frame
-import webbrowser
-import os
-from plotly.colors import sample_colorscale
 
-# Constants
-C50_prop = 3.4
-C50_sevo = 2.6
-C50_remi = 1.7
-gamma = 4.0
-gamma_0 = 2.71
+# === CSS hack: white background ===
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: white;
+        color: black;
+    }
+    .block-container {
+        background-color: white;
+        color: black;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-def p_to_color(p):
-    color_scale = [[0.0, 'rgb(255,0,0)'], [0.5, 'rgb(255,165,0)'], [1.0, 'rgb(0,128,0)']]
-    return sample_colorscale(color_scale, p, low=0, high=1)[0]
+# Parameters
+Ce50_prop = 4.5
+Ce50_sevo = 2.6
+Ce50_remi = 1.5
+gamma = 5.2
+gamma_0 = 2.7
 
-def calculate_and_show():
-    try:
-        ce_prop = float(entry_prop.get())
-        ce_remi = float(entry_remi.get())
-        ce_sevo = float(entry_sevo.get())
-    except ValueError:
-        print("Please enter numeric values for all fields.")
-        return
-
-    U = (ce_prop / C50_prop + ce_sevo / C50_sevo) * (1 + (ce_remi / C50_remi) ** gamma_0)
+def compute_P_eMAC(ce_prop, ce_sevo, ce_remi):
+    U = (ce_prop / Ce50_prop + ce_sevo / Ce50_sevo) * (1 + (ce_remi / Ce50_remi) ** gamma_0)
     P = (U ** gamma) / (1 + U ** gamma)
     eMAC = (P / (1 - P)) ** (1 / gamma)
-    color = p_to_color(P)
+    return P, eMAC
 
-    ce_prop_vals = np.linspace(0.0, 6.0, 60)
-    ce_sevo_vals = np.linspace(0.0, 3.0, 60)
-    ce_remi_vals = np.linspace(0.0, 4.0, 60)
-    CeProp, CeSevo, CeRemi = np.meshgrid(ce_prop_vals, ce_sevo_vals, ce_remi_vals, indexing='ij')
+st.markdown(
+    "<h3 style='text-align: left;'>CIVIA – Triple Interaction Model</h3>",
+    unsafe_allow_html=True
+)
 
-    U_all = (CeProp / C50_prop + CeSevo / C50_sevo) * (1 + (CeRemi / C50_remi) ** gamma_0)
-    P_all = (U_all ** gamma) / (1 + U_all ** gamma)
+# Sidebar sliders
+st.sidebar.header("Set Drug Concentrations")
+ce_prop = st.sidebar.slider("CeProp (µg/mL)", 0.0, 10.0, 1.6, 0.1)
+ce_sevo = st.sidebar.slider("EtSevo (%)", 0.0, 6.0, 0.4, 0.1)
+ce_remi = st.sidebar.slider("CeRemi (ng/mL)", 0.0, 6.0, 1.8, 0.1)
 
-    fig = go.Figure()
+# Sidebar annotation
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    """
+    ### Model Information
+    This visual model is based on formulas by **Zhang et al. (2025)**  
+    and was implemented by **Ahmet Ridvan Dogan**.
+    Ce50 values and interaction parameters were derived from:  
+    - Heyse (2012)  
+    - Hannivoort (2016)  
+    - Short (2002)  
+    - Bouillon (2004)  
 
-    fig.add_trace(go.Isosurface(
-        x=CeProp.flatten(),
-        y=CeSevo.flatten(),
-        z=CeRemi.flatten(),
-        value=P_all.flatten(),
-        isomin=0.49,
-        isomax=0.51,
-        surface_count=1,
-        opacity=0.4,
-        caps=dict(x_show=False, y_show=False, z_show=False),
-        colorscale=[[0, "orange"], [1, "orange"]],
-        showscale=False,
-        name="P ≈ 0.5"
-    ))
+    **Ce50 values used:**  
+    - Propofol: 4.5 µg/mL  
+    - Sevoflurane ET: 2.6 %  
+    - Remifentanil: 1.5 ng/mL  
 
-    fig.add_trace(go.Isosurface(
-        x=CeProp.flatten(),
-        y=CeSevo.flatten(),
-        z=CeRemi.flatten(),
-        value=P_all.flatten(),
-        isomin=0.94,
-        isomax=0.96,
-        surface_count=1,
-        opacity=0.4,
-        caps=dict(x_show=False, y_show=False, z_show=False),
-        colorscale=[[0, "green"], [1, "green"]],
-        showscale=False,
-        name="P ≈ 0.95"
-    ))
+    **Model outputs:**  
+    - Probability of no response (P)  
+    - Equivalent MAC (eMAC)  
+    """
+)
 
-    fig.add_trace(go.Scatter3d(
-        x=[ce_prop],
-        y=[ce_sevo],
-        z=[ce_remi],
-        mode='markers+text',
-        marker=dict(size=6, color=color),
-        text=[f"<b>P={P:.2f}<br>eMAC={eMAC:.2f}</b>"],
-        textposition='top center',
-        name='User Input Point'
-    ))
+# Compute outputs
+P0, eMAC0 = compute_P_eMAC(ce_prop, ce_sevo, ce_remi)
 
-    # Colorbar
-    fig.add_trace(go.Scatter3d(
-        x=[None], y=[None], z=[None],
-        mode='markers',
-        marker=dict(
-            colorscale=[[0, "red"], [0.5, "orange"], [1, "green"]],
-            cmin=0, cmax=1,
-            colorbar=dict(
-                title='Probability (P)',
-                tickvals=[0, 0.25, 0.5, 0.75, 1],
-                len=0.75
-            ),
-            showscale=True
+# Grid
+ce_prop_vals = np.linspace(0.0, 10.0, 30)
+ce_sevo_vals = np.linspace(0.0, 6.0, 30)
+ce_remi_vals = np.linspace(0.0, 6.0, 30)
+CeProp, CeSevo, CeRemi = np.meshgrid(ce_prop_vals, ce_sevo_vals, ce_remi_vals, indexing='ij')
+U_all = (CeProp / Ce50_prop + CeSevo / Ce50_sevo) * (1 + (CeRemi / Ce50_remi) ** gamma_0)
+P_all = (U_all ** gamma) / (1 + U_all ** gamma)
+
+fig = go.Figure()
+
+# Surfaces
+fig.add_trace(go.Isosurface(
+    x=CeProp.flatten(), y=CeSevo.flatten(), z=CeRemi.flatten(),
+    value=P_all.flatten(),
+    isomin=0.49, isomax=0.51,
+    opacity=0.3,
+    colorscale=[[0, "red"], [0.5, "orange"], [1, "green"]],
+    showscale=False
+))
+fig.add_trace(go.Isosurface(
+    x=CeProp.flatten(), y=CeSevo.flatten(), z=CeRemi.flatten(),
+    value=P_all.flatten(),
+    isomin=0.94, isomax=0.96,
+    opacity=0.3,
+    colorscale=[[0, "red"], [0.5, "orange"], [1, "green"]],
+    showscale=False
+))
+
+# User point
+fig.add_trace(go.Scatter3d(
+    x=[ce_prop], y=[ce_sevo], z=[ce_remi],
+    mode='markers+text',
+    marker=dict(
+        size=12,
+        color=[P0],
+        cmin=0, cmax=1,
+        colorscale=[[0, "red"], [0.5, "orange"], [1, "green"]],
+        colorbar=dict(
+            title='Probability (P)',
+            tickvals=[0, 0.25, 0.5, 0.75, 1],
+            len=0.75
         ),
-        showlegend=False
-    ))
+        showscale=True
+    ),
+    text=[f"P={P0:.2f}, eMAC={eMAC0:.2f}"],
+    textposition='top center'
+))
 
-    fig.update_layout(
-        title={
-            'text': "CIVIA Protocol - Isosurface Visualization (3D)<br><sub>- Dr. Ahmet Rıdvan Doğan -</sub>",
-            'x': 0.5,
-            'xanchor': 'center'
-        },
-        scene=dict(
-            xaxis_title=dict(text='CeProp (\u00b5g/mL)', font=dict(size=18, family='Arial', color='black', weight='bold')),
-            yaxis_title=dict(text='EtSevo (%)', font=dict(size=18, family='Arial', color='black', weight='bold')),
-            zaxis_title=dict(text='CeRemi (ng/mL)', font=dict(size=18, family='Arial', color='black', weight='bold'))
-        ),
-        margin=dict(l=0, r=0, t=40, b=0),
-        legend=dict(x=0, y=1),
-        annotations=[
-            dict(
-                showarrow=False,
-                text=(
-                    f"<b>User-defined values:</b><br>"
-                    f"<b>P = {P:.3f}</b><br>"
-                    f"<b>eMAC = {eMAC:.3f}</b>"
-                ),
-                x=0.98,
-                y=0.75,
-                xanchor='right',
-                yanchor='middle',
-                align='right',
-                font=dict(size=14, color='black', family='Arial', weight='bold'),
-                bgcolor='rgba(255,255,255,0.8)',
-                bordercolor='black',
-                borderwidth=1,
-                borderpad=6
-            ),
-            dict(
-                showarrow=False,
-                text=(
-                    "This visual model is based on formulas by Zhang et al. (2025).<br>"
-                    "Ce50 values and interaction parameters were derived from:<br>"
-                    "Heyse (2012), Hannivoort (2016), Short (2002), Bouillon (2004).<br><br>"
-                    "<b>Ce50 values used:</b><br>"
-                    "- Propofol: 3.4 \u00b5g/mL<br>"
-                    "- Sevoflurane ET: 2.6 %<br>"
-                    "- Remifentanil: 1.7 ng/mL<br><br>"
-                    "Model outputs include probability of no response (P)<br>"
-                    "and equivalent MAC (eMAC) based on selected concentrations."
-                ),
-                x=0.005,
-                y=0.01,
-                xanchor='left',
-                yanchor='bottom',
-                align='left',
-                font=dict(size=10, color='black'),
-                bgcolor='rgba(255,255,255,0.8)',
-                bordercolor='black',
-                borderwidth=1,
-                borderpad=4
-            )
-        ]
-    )
+# Layout (big graph)
+fig.update_layout(
+    scene=dict(
+        xaxis=dict(title='CeProp (µg/mL)'),
+        yaxis=dict(title='EtSevo (%)'),
+        zaxis=dict(title='CeRemi (ng/mL)'),
+        aspectmode="cube"
+    ),
+    margin=dict(l=0, r=0, t=40, b=0),
+    width=1200, height=900,
+    paper_bgcolor="white",
+    plot_bgcolor="white",
+    font=dict(color="black")
+)
 
-    file_path = os.path.abspath("civia_isosurface.html")
-    fig.write_html(file_path)
-    webbrowser.open('file://' + file_path)
+# Show graph (top)
+st.plotly_chart(fig, use_container_width=False)
 
-# GUI
-window = Tk()
-window.title("CIVIA Model Input (Plotly Isosurface)")
-window.geometry("400x250")
-
-frame = Frame(window)
-frame.pack(pady=20, expand=True, fill='both')
-
-Label(frame, text="CeProp (\u00b5g/mL):").grid(row=0, column=0, sticky='e', padx=10, pady=5)
-entry_prop = Entry(frame, width=15)
-entry_prop.grid(row=0, column=1, padx=10, pady=5)
-
-Label(frame, text="CeRemi (ng/mL):").grid(row=1, column=0, sticky='e', padx=10, pady=5)
-entry_remi = Entry(frame, width=15)
-entry_remi.grid(row=1, column=1, padx=10, pady=5)
-
-Label(frame, text="EtSevo (%):").grid(row=2, column=0, sticky='e', padx=10, pady=5)
-entry_sevo = Entry(frame, width=15)
-entry_sevo.grid(row=2, column=1, padx=10, pady=5)
-
-Button(window, text="Calculate and Visualize", command=calculate_and_show).pack(pady=10)
-
-window.mainloop()
+# Current values (below graph, small font)
+st.markdown(
+    f"""
+    <div style="font-size:14px; line-height:1.6; color:black;">
+    <b>Current Point Values</b><br>
+    - CeProp = {ce_prop:.2f} µg/mL<br>
+    - EtSevo = {ce_sevo:.2f} %<br>
+    - CeRemi = {ce_remi:.2f} ng/mL<br>
+    - P = {P0:.2f}<br>
+    - eMAC = {eMAC0:.2f}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
