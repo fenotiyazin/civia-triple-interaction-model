@@ -1,38 +1,28 @@
-# CIVIA Triple Interaction Model Visualization Tool
+# CIVIA – Triple Interaction Model
 
-This project provides an interactive visualization tool for the triple interaction pharmacodynamic model of propofol, remifentanil, and sevoflurane, based on the validated response surface model proposed by Zhang et al. (2025). The tool enables users to explore isosurfaces representing the probability of no response (P) based on user-defined drug concentrations.
+This repository hosts an interactive visualization tool for exploring the pharmacodynamic interaction between **propofol, sevoflurane, and remifentanil**.  
+It provides a **four-dimensional response surface model** with probability of no response (P) and equivalent MAC (eMAC) estimation.  
 
-- **Model:** Triple drug interaction model (propofol + remifentanil + sevoflurane)
-- **Visualization:** 3D isosurfaces of constant P values (e.g., P ≈ 0.5, 0.95)
-- **Output:** Interactive HTML visualization
-- **Language:** Python
-- **License:** Open for academic and non-commercial use
+## 🔬 Model Information
+- Based on response surface equations by **Zhang et al. (2025)**  
+- Implemented by **Ahmet Rıdvan Doğan**  
+- Ce50 and interaction parameters derived from:
+  - Heyse (2012)  
+  - Hannivoort (2016)  
+  - Short (2002)  
+  - Bouillon (2004)  
 
-## How to Run
+**Ce50 values used:**
+- Propofol: 4.5 µg/mL  
+- Sevoflurane ET: 2.6 %  
+- Remifentanil: 1.5 ng/mL  
 
-1. Install required Python packages (see `requirements.txt`).
-2. Run the Python script:
-    ```bash
-    python eMAC_visual_english_edited.py
-    ```
-3. Enter desired effect-site concentrations and generate the visualization.
+## ⚙️ Requirements
+The app requires:
+- Streamlit  
+- Plotly  
+- Numpy  
 
-## Dependencies
-
-- numpy
-- plotly
-- tkinter (usually pre-installed with Python)
-- webbrowser (standard library)
-- os (standard library)
-
-## References
-
-Zhang et al., Feasibility Study of an Indicator of Equivalent Anesthetic Effect for a Three-Drug Model (Anesth Analg, 2025).  
-Additional parameter references: Heyse et al., Bouillon et al., Hannivoort et al.
-
-## License
-
-This code is provided for academic and non-commercial use only. Please cite the original article if used in publications.
-
----
-
+Install dependencies with:
+```bash
+pip install -r requirements.txt
