@@ -127,7 +127,7 @@ fig.add_trace(
         z=[ce_remi],
         mode="markers+text",
         marker=dict(
-            size=12,
+            size=6,
             color=[P0],
             cmin=0,
             cmax=1,
@@ -177,3 +177,4 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
