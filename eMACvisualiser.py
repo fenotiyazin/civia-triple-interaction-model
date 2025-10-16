@@ -20,11 +20,11 @@ st.markdown(
 )
 
 # === Parameters ===
-Ce50_prop = 3.4     # µg/mL
-Ce50_sevo = 2.6      # %
-Ce50_remi = 1.7     # ng/mL
-gamma = 4.0
-gamma_0 = 2.71
+Ce50_prop = 7.58     # µg/mL
+Ce50_sevo = 2.59     # %
+Ce50_remi = 1.36     # ng/mL
+gamma = 5.22
+gamma_0 = 1.0
 
 # === Function to compute P and eMAC ===
 def compute_P_eMAC(ce_prop, ce_sevo, ce_remi):
@@ -43,9 +43,9 @@ st.markdown(
 
 # === Sidebar sliders ===
 st.sidebar.header("Set Drug Concentrations")
-ce_prop = st.sidebar.slider("CeProp (µg/mL)", 0.0, 10.0, 1.6, 0.1)
-ce_sevo = st.sidebar.slider("EtSevo (%)", 0.0, 6.0, 0.4, 0.1)
-ce_remi = st.sidebar.slider("CeRemi (ng/mL)", 0.0, 6.0, 1.8, 0.1)
+ce_prop = st.sidebar.slider("CeProp (µg/mL)", 0.0, 10.0, 1.6, 0.1, format="%.1f")
+ce_sevo = st.sidebar.slider("EtSevo (%)", 0.0, 6.0, 0.4, 0.1, format="%.1f")
+ce_remi = st.sidebar.slider("CeRemi (ng/mL)", 0.0, 6.0, 1.8, 0.1, format="%.1f")
 
 # === Sidebar annotation ===
 st.sidebar.markdown("---")
@@ -100,8 +100,15 @@ fig.add_trace(
         opacity=0.3,
         colorscale=[[0, "orange"], [1, "orange"]],
         showscale=False,
+        hovertemplate=(
+            "Prop (CeProp): %{x:.1f} µg/mL<br>"
+            "Sevo (EtSevo): %{y:.1f} %<br>"
+            "Remi (CeRemi): %{z:.1f} ng/mL<br>"
+            "P = %{value:.2f}<extra></extra>"
+        ),
     )
 )
+
 
 # === Isosurface P = 0.95 (green) ===
 fig.add_trace(
@@ -116,6 +123,12 @@ fig.add_trace(
         opacity=0.3,
         colorscale=[[0, "green"], [1, "green"]],
         showscale=False,
+        hovertemplate=(
+            "Prop (CeProp): %{x:.1f} µg/mL<br>"
+            "Sevo (EtSevo): %{y:.1f} %<br>"
+            "Remi (CeRemi): %{z:.1f} ng/mL<br>"
+            "P = %{value:.2f}<extra></extra>"
+        ),
     )
 )
 
@@ -139,8 +152,14 @@ fig.add_trace(
             ),
             showscale=True,
         ),
-        text=[f"P={P0:.2f}, eMAC={eMAC0:.2f}"],
+        text=[f"P={P0:.1f}, eMAC={eMAC0:.1f}"],
         textposition="top center",
+        hovertemplate=(
+            "Prop (CeProp): %{x:.1f} µg/mL<br>"
+            "Sevo (EtSevo): %{y:.1f} %<br>"
+            "Remi (CeRemi): %{z:.1f} ng/mL<br>"
+            "P = %{marker.color:.1f}<extra></extra>"
+        ),
     )
 )
 
@@ -168,13 +187,12 @@ st.markdown(
     f"""
     <div style="font-size:14px; line-height:1.6; color:black;">
     <b>Current Point Values</b><br>
-    - CeProp = {ce_prop:.2f} µg/mL<br>
-    - EtSevo = {ce_sevo:.2f} %<br>
-    - CeRemi = {ce_remi:.2f} ng/mL<br>
-    - P = {P0:.2f}<br>
-    - eMAC = {eMAC0:.2f}
+    - CeProp = {ce_prop:.1f} µg/mL<br>
+    - EtSevo = {ce_sevo:.1f} %<br>
+    - CeRemi = {ce_remi:.1f} ng/mL<br>
+    - P = {P0:.1f}<br>
+    - eMAC = {eMAC0:.1f}
     </div>
     """,
     unsafe_allow_html=True,
 )
-
