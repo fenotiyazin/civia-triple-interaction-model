@@ -13,9 +13,9 @@ It provides a **four-dimensional response surface model** with probability of no
   - Bouillon (2004)  
 
 **Ce50 values used:**
-- Propofol: 4.5 µg/mL  
-- Sevoflurane ET: 2.6 %  
-- Remifentanil: 1.5 ng/mL  
+- Propofol: 7.58 µg/mL  
+- Sevoflurane ET: 2.59 %  
+- Remifentanil: 1.36 ng/mL  
 
 ## ⚙️ Requirements
 The app requires:
